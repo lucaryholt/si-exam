@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SI-EXAM</title>
+</head>
+<body>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/about-us">About us</a>
+    <a href="/contact-us">Contact us</a>
+  </nav>
+
+  <main>
+    <iframe 
+      id="mitid-iframe"
+      src="https://mitid.eu.pythonanywhere.com/" 
+      frameborder="0"
+      style="height:32rem"
+      >
+    </iframe>
+
+    <div id="token-input-div" hidden>
+      <input type="number" id="token-input" placeholder="token">
+      <input type="number" id="phone-input" placeholder="phone" hidden>
+      <button onclick="sendToken()">Send token</button>
+    </div>
+  </main>
+
+  <script>
+    window.addEventListener("message", event => {
+      if (event.data == 'no') return;
+
+      fetch(
+        './verify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            jwt: event.data
+          })
+        }
+      ).then(response => response.json())
+        .then(result => {
+          if (result.status == 'NO') {
+            alert('Could not verify, try again');
+            fetch('./');
+          }
+          if (result.status == 'ERROR') {
+            alert('Error occured, try again');
+            fetch('./');
+          }
+          else {
+            document.getElementById('mitid-iframe').hidden = true;
+            document.getElementById('token-input-div').hidden = false;
+          }
+        });
+    }, false);
+
+    function sendToken() {
+      const token = document.getElementById('token-input').value;
+      const phone = document.getElementById('phone-input').value;
+
+      fetch(
+        './validate-token',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            token: token,
+            phone: phone
+          })
+        }
+      ).then(response => response.json())
+        .then(result => {
+          if (result.status == 'NO') {
+            alert('failure! try again!');
+            fetch('./');
+          }
+          else {
+            alert('success!!');
+            location.replace(`./welcome?token=${result.token}`);
+          }
+        });
+    }
+  </script>
+</body>
+</html>
