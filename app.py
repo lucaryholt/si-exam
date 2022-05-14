@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 from services.jwt_services import get_secret_key
 from services.sms_service import send_token as send_sms_token
 from services.email_service import send_token as send_email_token
-from services.database import get_email, get_phone, token_database, save_token
+from services.database import get_email, get_phone, token_database
+from services.esb_connector import send_esb_token
 import os
 import jwt
 import random
@@ -62,8 +63,8 @@ def _():
 
         if database_entry == token:
             esb_token = uuid.uuid4()
-            save_token(get_email(), get_phone(), esb_token)
-            return {"status": "YES", "token": str(esb_token)}
+            if send_esb_token(get_email(), get_phone(), esb_token):
+                return {"status": "YES", "token": str(esb_token)}
 
         return {"status": "NO"}
     except KeyError:
